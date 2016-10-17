@@ -9,6 +9,14 @@ The quickstart will produce 3 logs in a ./log directory. One is a generic log `q
 
 For more information about executing the script, run `./bash/quickstart.sh -h`.
 
+## NOTE
+
+**This is a modified version of the original ['predix-scripts'](https://github.com/PredixDev/predix-scripts) repos with the following enhancements**
+
+- Set the expiration time for client secret to 6 months
+- Creation of the UAA Groups for the Predix Time Series service
+- Add the UAA user to the UAA Groups for the Predix Time Series service
+
 ## Development machine configurations and step-by-step to building Predix Application and Services
 
 Before running the script, on your development machine (not your Raspberry PI or other edge device), please make sure that you install Cloud Foundry and have other environment prerequisites in place by completing the following steps.
