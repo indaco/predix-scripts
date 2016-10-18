@@ -1,6 +1,18 @@
 # Predix Application Quickstart
 Quickstart to set up a Predix Application, including Predix Servies, and configure Predix Machine to have an edge device stream data to the Predix Cloud
 
+## Notes
+
+**This is a modified version of the original ['predix-scripts'](https://github.com/PredixDev/predix-scripts) repos with the following enhancements:**
+
+- Set the expiration time for client secret to 6 months
+- Creation of the UAA Groups for the Predix Time Series service
+- Add the UAA user to the UAA Groups for the Predix Time Series service
+
+Files Modified:
+
+- `bash/scripts/curl_helper_funcs.sh`
+- `bash/scripts/predix_services_setup.sh`
 
 ## Intro
 Welcome Predix Developers! This product is a reference application for Predix that exposes various micro services for demo, quick setup, and configuration purposes. It has several use cases. One primary one is to push time series data from an edge device, either your local machine or any device such as Raspberry PI/Intel Edison,  to Predix Time Series Service and be viewable via the front-end which uses the Predix Seed. Run the `quickstart` script to setup a instance of time series, UAA, Asset and push a Front-End demo application to Cloud Foundry. This gives a basic idea of how various Predix micro services can be hooked together and configured quickly and easily.
@@ -8,14 +20,6 @@ Welcome Predix Developers! This product is a reference application for Predix th
 The quickstart will produce 3 logs in a ./log directory. One is a generic log `quickstartlog.log`, another pertains to all things related Predix Service configuration and deployment called `predix-services-summary`, and lastly one that pertains to configuration and deployment of the frontend application called `build-basic-app-summary.txt`.
 
 For more information about executing the script, run `./bash/quickstart.sh -h`.
-
-## NOTE
-
-**This is a modified version of the original ['predix-scripts'](https://github.com/PredixDev/predix-scripts) repos with the following enhancements**
-
-- Set the expiration time for client secret to 6 months
-- Creation of the UAA Groups for the Predix Time Series service
-- Add the UAA user to the UAA Groups for the Predix Time Series service
 
 ## Development machine configurations and step-by-step to building Predix Application and Services
 
