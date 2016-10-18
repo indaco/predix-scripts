@@ -152,10 +152,10 @@ function __addUaaUser
 
 #	----------------------------------------------------------------
 #	Function for getting a UAA user details
-#		Accepts 3 argument:
-#			string of UAA URI
-#     string of the USERNAME
-#     string of UAA adminToken
+#	  Accepts 3 argument:
+#       string of UAA URI
+#       string of the USERNAME
+#       string of UAA adminToken
 #	----------------------------------------------------------------
 function __getUaaUserId
 {
@@ -180,25 +180,36 @@ function __getUaaUserId
 
 #	----------------------------------------------------------------
 #	Function for creating a UAA group and add a UAA user to it
-#		Accepts 4 argument:
-#			string of UAA URI
-#     string of the TIMESERIES_ZONE_ID
-#     string of Admin UAA Token
-#     string of  UAA_USER_NAME
+#	  Accepts 5 argument:
+#       string of group name (substring)
+#       string of UAA URI
+#       string of the TIMESERIES_ZONE_ID
+#       string of Admin UAA Token
+#       string of UAA_USER_NAME
 #
 #  timeseries.zones.TIMESERIES_ZONE_ID.user
 #	----------------------------------------------------------------
-function __addUaaTimeSeriesUserGroupWithMember
+function __addUaaGroupForTimeSeriesWithMember
 {
-  __validate_num_arguments 4 $# "\"curl_helper_funcs:__addUaaTimeSeriesUserGroup\" expected in order: UAA URI, Time Series Zone ID, adminUaaToken" "$CURL_HELPER_LOG_PATH"
-  __append_new_line_log "Making CURL POST request to create UAA Group \"timeseries.zones.$2.user\"..." "$CURL_HELPER_LOG_PATH"
+  __validate_num_arguments 5 $# "\"curl_helper_funcs:__addUaaGroupForTimeSeriesWithMember\" expected in order: Group name, UAA URI, Time Series Zone ID, adminUaaToken" "$CURL_HELPER_LOG_PATH"
+  local groupName=""
+  case $1 in
+    "user" )
+      groupName="timeseries.zones.$3.user"
+      ;;
+    "query" )
+      groupName="timeseries.zones.$3.query"
+      ;;
+    "ingest" )
+      groupName="timeseries.zones.$3.ingest"
+      ;;
+  esac
+  __append_new_line_log "Making CURL POST request to create UAA Group \"$groupName\"..." "$CURL_HELPER_LOG_PATH"
 
-  groupName="timeseries.zones.$2.user"
-  userID=$( __getUaaUserId $1 $4 ${adminToken[1]} )
-
-  responseCurl=`curl "$1/Groups" -H "Pragma: no-cache" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Authorization: Bearer $3" --data-binary '{"displayName":"'$groupName'","description":"'$groupName'", "members" : [{"origin" : "uaa","type" : "USER","value" : "'$userID'"}]}'`
+  userID=$( __getUaaUserId $2 $5 ${adminToken[1]} )
+  responseCurl=`curl "$2/Groups" -H "Pragma: no-cache" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Authorization: Bearer $4" --data-binary '{"displayName":"'$groupName'","description":"'$groupName'", "members" : [{"origin" : "uaa","type" : "USER","value" : "'$userID'"}]}'`
   if [ ${#responseCurl} -lt 3 ]; then
-    __error_exit "Failed to make request to create UAA Groups to \"$1\"" "$CURL_HELPER_LOG_PATH"
+    __error_exit "Failed to make request to create UAA Groups to \"$2\"" "$CURL_HELPER_LOG_PATH"
   else
     # If the response has a attribute for "error" ,
     # AND not a value of "Username already in use: $UAA_USER_NAME" for attribute "error_description" then fail
@@ -208,91 +219,21 @@ function __addUaaTimeSeriesUserGroupWithMember
     if [ ${#errorAttribute} -gt 3 ]; then
         __error_exit "$errorDescriptionAttribute \"$groupName\"" "$CURL_HELPER_LOG_PATH"
     else
-      __append_new_line_log "Successfully created new UAA Group: \"$groupName\" and user \"$4\" added as member" "$CURL_HELPER_LOG_PATH"
+      __append_new_line_log "Successfully created new UAA Group: \"$groupName\" and user \"$5\" added as member" "$CURL_HELPER_LOG_PATH"
     fi
   fi
 }
 
 #	----------------------------------------------------------------
-#	Function for creating a UAA group and add a UAA user to it
-#		Accepts 4 argument:
-#			string of UAA URI
-#     string of the TIMESERIES_ZONE_ID
-#     string of Admin UAA Token
-#     string of  UAA_USER_NAME
+#	Function for creating UAA groups and add a user to them
+#	  Accepts 3 argument:
+#       string of UAA URI
+#       string of the TIMESERIES_ZONE_ID
+#       string of UAA_USER_NAME
 #
-#  timeseries.zones.TIMESERIES_ZONE_ID.query
+#   "'timeseries.zones.$2.user'","'timeseries.zones.$2.query'","'timeseries.zones.$2.ingest'"
 #	----------------------------------------------------------------
-function __addUaaTimeSeriesQueryGroupWithMember
-{
-  __validate_num_arguments 4 $# "\"curl_helper_funcs:__addUaaTimeSeriesQueryGroup\" expected in order: UAA URI, Time Series Zone ID, adminUaaToken" "$CURL_HELPER_LOG_PATH"
-  __append_new_line_log "Making CURL POST request to create UAA Group \"timeseries.zones.$2.query\"..." "$CURL_HELPER_LOG_PATH"
-
-  groupName="timeseries.zones.$2.query"
-  userID=$( __getUaaUserId $1 $4 ${adminToken[1]} )
-
-  responseCurl=`curl "$1/Groups" -H "Pragma: no-cache" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Authorization: Bearer $3" --data-binary '{"displayName":"'$groupName'","description":"'$groupName'", "members" : [{"origin" : "uaa","type" : "USER","value" : "'$userID'"}]}'`
-  if [ ${#responseCurl} -lt 3 ]; then
-    __error_exit "Failed to make request to create UAA Groups to \"$1\"" "$CURL_HELPER_LOG_PATH"
-  else
-    # If the response has a attribute for "error" ,
-    # AND not a value of "Username already in use: $UAA_USER_NAME" for attribute "error_description" then fail
-    errorAttribute=$( __jsonval "$responseCurl" "error" )
-    errorDescriptionAttribute=$( __jsonval "$responseCurl" "error_description" )
-
-    if [ ${#errorAttribute} -gt 3 ]; then
-        __error_exit "$errorDescriptionAttribute \"$groupName\"" "$CURL_HELPER_LOG_PATH"
-    else
-      __append_new_line_log "Successfully created new UAA Group: \"$groupName\" and user \"$4\" added as member" "$CURL_HELPER_LOG_PATH"
-    fi
-  fi
-}
-
-#	----------------------------------------------------------------
-#	Function for creating a UAA group and add a UAA user to it
-#		Accepts 4 argument:
-#			string of UAA URI
-#     string of the TIMESERIES_ZONE_ID
-#     string of Admin UAA Token
-#     string of  UAA_USER_NAME
-#
-#  timeseries.zones.TIMESERIES_ZONE_ID.ingest
-#	----------------------------------------------------------------
-function __addUaaTimeSeriesIngestGroupWithMember
-{
-  __validate_num_arguments 4 $# "\"curl_helper_funcs:__addUaaTimeSeriesIngestGroup\" expected in order: UAA URI, Time Series Zone ID, adminUaaToken" "$CURL_HELPER_LOG_PATH"
-  __append_new_line_log "Making CURL POST request to create UAA Group \"timeseries.zones.$2.ingest\"..." "$CURL_HELPER_LOG_PATH"
-
-  groupName="timeseries.zones.$2.ingest"
-  userID=$( __getUaaUserId $1 $4 ${adminToken[1]} )
-
-  responseCurl=`curl "$1/Groups" -H "Pragma: no-cache" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Authorization: Bearer $3" --data-binary '{"displayName":"'$groupName'","description":"'$groupName'", "members" : [{"origin" : "uaa","type" : "USER","value" : "'$userID'"}]}'`
-  if [ ${#responseCurl} -lt 3 ]; then
-    __error_exit "Failed to make request to create UAA Groups to \"$1\"" "$CURL_HELPER_LOG_PATH"
-  else
-    # If the response has a attribute for "error" ,
-    # AND not a value of "Username already in use: $UAA_USER_NAME" for attribute "error_description" then fail
-    errorAttribute=$( __jsonval "$responseCurl" "error" )
-    errorDescriptionAttribute=$( __jsonval "$responseCurl" "error_description" )
-
-    if [ ${#errorAttribute} -gt 3 ]; then
-        __error_exit "$errorDescriptionAttribute \"$groupName\"" "$CURL_HELPER_LOG_PATH"
-    else
-      __append_new_line_log "Successfully created new UAA Group: \"$groupName\" and user \"$4\" added as member" "$CURL_HELPER_LOG_PATH"
-    fi
-  fi
-}
-
-#	----------------------------------------------------------------
-#	Function for processing a UAA group
-#		Accepts 3 argument:
-#			string of UAA URI
-#     string of the TIMESERIES_ZONE_ID
-#     string of UAA_USER_NAME
-#
-#  "'timeseries.zones.$2.user'","'timeseries.zones.$2.query'","'timeseries.zones.$2.ingest'"
-#	----------------------------------------------------------------
-function __addUaaGroupsForTimeSeriesAndAddUser
+function __addUaaGroupsWithMemberForTimeSeries
 {
   __validate_num_arguments 3 $# "\"curl_helper_funcs:__addUaaGroup\" expected in order: UAA URI, Time Series Zone ID, UAA_USER_NAME" "$CURL_HELPER_LOG_PATH"
   __append_new_line_log "Making CURL GET request to get UAA Admin Token..." "$CURL_HELPER_LOG_PATH"
@@ -304,9 +245,9 @@ function __addUaaGroupsForTimeSeriesAndAddUser
   else
     __append_new_line_log "Got UAA admin token" "$CURL_HELPER_LOG_PATH"
 
-    __addUaaTimeSeriesUserGroupWithMember $1 $2 ${adminToken[1]} $3
-    __addUaaTimeSeriesQueryGroupWithMember $1 $2 ${adminToken[1]} $3
-    __addUaaTimeSeriesIngestGroupWithMember $1 $2 ${adminToken[1]} $3
+    __addUaaGroupForTimeSeriesWithMember "user" $1 $2 ${adminToken[1]} $3
+    __addUaaGroupForTimeSeriesWithMember "query" $1 $2 ${adminToken[1]} $3
+    __addUaaGroupForTimeSeriesWithMember "ingest" $1 $2 ${adminToken[1]} $3
   fi
 }
 

@@ -131,7 +131,7 @@ __addUaaUser "$uaaURL"
 
 # Create new UAA Groups for the Time Series service and add a user to them
 __append_new_head_log "Creating Groups on UAA to use the Time Series Service and add user as member" "-" "$predixServicesLogDir"
-__addUaaGroupsForTimeSeriesAndAddUser "$uaaURL" "$TIMESERIES_ZONE_ID" "$UAA_USER_NAME"
+__addUaaGroupsWithMemberForTimeSeries "$uaaURL" "$TIMESERIES_ZONE_ID" "$UAA_USER_NAME"
 
 # Get the Asset URI and generate Asset body from the enviroment variables (for use when querying and posting data)
 if assetURI=$(cf env $TEMP_APP | grep -m 100 uri | grep asset | awk -F"\"" '{print $4}'); then
