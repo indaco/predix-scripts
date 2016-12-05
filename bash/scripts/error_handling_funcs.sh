@@ -54,6 +54,7 @@ function __error_exit
 {
 	echo "********************************************"
 	echo "Failure to run quickstart script"
+  echo "View logs at $2/quickstartlog.log"
 	echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
 	echo "********************************************"
 	echo -e $(timestamp): " --- ERROR:" "$1"  >> "$2/quickstartlog.log"
